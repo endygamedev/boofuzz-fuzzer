@@ -6,8 +6,7 @@ from boofuzz import (
     Target,
     SocketConnection,
     s_initialize,
-    s_block_start,
-    s_block_end,
+    s_block,
     s_static,
     s_int,
     s_get,
@@ -49,9 +48,9 @@ def main():
     )
 
     s_initialize("GET Fuzzing")
-    if s_block_start("Request-Line"):
+    with s_block("Request-Line"):
         s_static(
-            "GET /posts/",
+            "GET /posts",
             name="Request-Line-Start",
         )
         s_int(
@@ -61,9 +60,8 @@ def main():
             name="Post-ID",
         )
         s_static(" HTTP/1.1\r\n", name="Request-Line-End")
-    s_block_end("Request-Line")
 
-    if s_block_start("Headers"):
+    with s_block("Headers"):
         s_static(
             "Host: jsonplaceholder.typicode.com",
             name="Host-Header",
@@ -72,7 +70,6 @@ def main():
             "\r\n\r\n",
             name="Header-End",
         )
-    s_block_end("Headers")
 
     session.connect(s_get("GET Fuzzing"))
     session.fuzz()

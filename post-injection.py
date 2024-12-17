@@ -6,8 +6,7 @@ from boofuzz import (
     Target,
     SocketConnection,
     s_initialize,
-    s_block_start,
-    s_block_end,
+    s_block,
     s_static,
     s_size,
     s_string,
@@ -52,14 +51,13 @@ def main():
     )
 
     s_initialize("POST Injection")
-    if s_block_start("Request-Line"):
+    with s_block("Request-Line"):
         s_static(
             "POST /posts HTTP/1.1\r\n",
             name="Request-Line",
         )
-    s_block_end("Request-Line")
 
-    if s_block_start("Headers"):
+    with s_block("Headers"):
         s_static(
             "Host: jsonplaceholder.typicode.com\r\n",
             name="Host-Header",
@@ -81,9 +79,8 @@ def main():
             "\r\n\r\n",
             name="Header-End",
         )
-    s_block_end("Headers")
 
-    if s_block_start("Body"):
+    with s_block("Body"):
         s_static("{", name="JSON-Start")
         s_string('"title":', name="Title-Key")
         s_string('"fuzz me"', fuzzable=True, name="Title-Value")
@@ -97,7 +94,6 @@ def main():
         s_string('"userId":', name="UserId-Key")
         s_int(1, output_format="ascii", fuzzable=True, name="UserId-Value")
         s_static("}", name="JSON-End")
-    s_block_end("Body")
 
     session.connect(s_get("POST Injection"))
     session.fuzz()
